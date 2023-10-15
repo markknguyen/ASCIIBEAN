@@ -6,6 +6,16 @@ Inspired by the donut.c code and the article titled "Donut math: how donut.c wor
 
 The code provided in the article draws a torus using ASCII characters. It's a framebuffer combined with a Z-buffer to render these characters. By plotting pixels densely along the surface of the torus, the final output looks solid without needing raytracing. ASCII characters ranging from .,-~:;=!*#$@ are used to represent the illumination value of the surface at each point, going from dimmest to brightest.
 
+# How to Run
+To run canvas animation and ASCII animation
+- Run the index.html file through your folder
+To run it on terminal
+- Download node.JS
+- Run this code:
+- node bean_animation.js
+- Press Ctrl + C to stop
+
+
 # Mathematics Behind
 
 To understand how to plot an ASCII bean, we must first comprehend the math behind the donut. 3D objects are projected onto a 2D screen. Points in 3D-space (x,y,z) are projected onto a plane at distance z' to give the corresponding 2D position (x',y'). This is represented mathematically as:
