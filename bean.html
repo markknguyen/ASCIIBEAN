@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Bean Animation</title>
+    <style>
+        #d {
+            background-color: black;
+            color: white;
+            font-family: monospace;
+            font-size: 10px;
+            white-space: pre;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvasdonut" width="320" height="240"></canvas>
+    <button onclick="toggleCanvasAnimation()">Toggle Canvas Animation</button>
+
+    <pre id="d"></pre>
+    <button onclick="toggleASCIIAnimation()">Toggle ASCII Animation</button>
+
+    <script>
+        var tmrCanvas, tmrASCII;
+
+        (function() {
+            var rotate = function(x, y, z, a, b) {
+                var yOffset = 0.5;
+                y += yOffset;
+                var x_rot_y = x * Math.cos(a) - z * Math.sin(a);
+                var y_rot_y = y;
+                var z_rot_y = x * Math.sin(a) + z * Math.cos(a);
+                var x_rot_z = x_rot_y * Math.cos(b) - y_rot_y * Math.sin(b);
+                var y_rot_z = x_rot_y * Math.sin(b) + y_rot_y * Math.cos(b);
+                var z_rot_z = z_rot_y;
+                y_rot_z -= yOffset;
+                return {
+                    x: x_rot_z,
+                    y: y_rot_z,
+                    z: z_rot_z
+                };
+            };
+
+            var A = 0, B = 0;
+
+            var asciiframe = function() {
+                var b = Array(1760).fill(' ');
+                var z = Array(1760).fill(0);   
+                var chars = ".,-~:;=!*#$@";
+                A += 0.07;
+                B += 0.03;
+                var cA = Math.cos(A), sA = Math.sin(A),
+                    cB = Math.cos(B), sB = Math.sin(B);
+                for(var k = 0; k < 1760; k++) {
+                    b[k] = k % 80 == 79 ? "\n" : " ";
+                    z[k] = 0;
+                }
+                for(var x = -2; x < 2; x += 0.05) {
+                    for(var y = -2; y < 2; y += 0.05) {
+                        var z_upper = (1 / 1.3) * Math.sqrt(-(x * x + y * y - 1 / 1.5) * (x * x + y * y - 1 / 1.5) - y);
+                        var z_lower = -(1 / 1.3) * Math.sqrt(-(x * x + y * y - 1 / 1.5) * (x * x + y * y - 1 / 1.5) - y);
+                        var rotated_upper = rotate(x, y, z_upper, A, B);
+                        var rotated_lower = rotate(x, y, z_lower, A, B);
+                        var ooz_upper = 1 / (1.7 + rotated_upper.z);
+                        var xp_upper = 0 | (40 + 30 * ooz_upper * rotated_upper.x);
+                        var yp_upper = 0 | (18 + 15 * ooz_upper * rotated_upper.y);
+                        var L_upper = Math.floor(ooz_upper * (chars.length - 1) * .9);  
+                        if (L_upper >= chars.length) L_upper = chars.length - 2;
+                        var idx_upper = xp_upper + 80 * yp_upper;
+                        if (1760 > idx_upper && idx_upper >= 0 && ooz_upper > z[idx_upper]) {
+                            z[idx_upper] = ooz_upper;
+                            b[idx_upper] = chars.charAt(L_upper);
+                        }
+                        var ooz_lower = 1 / (1.7 + rotated_lower.z);
+                        var xp_lower = 0 | (40 + 30 * ooz_lower * rotated_lower.x);
+                        var yp_lower = 0 | (18 + 15 * ooz_lower * rotated_lower.y); 
+                        var L_lower = Math.floor(ooz_lower * (chars.length - 1) * .9);  
+                        if (L_lower >= chars.length) L_lower = chars.length - 2;
+                        var idx_lower = xp_lower + 80 * yp_lower;
+                        if (1760 > idx_lower && idx_lower >= 0 && ooz_lower > z[idx_lower]) {
+                            z[idx_lower] = ooz_lower;
+                            b[idx_lower] = chars.charAt(L_lower);
+                        }
+                    }
+                }
+                document.getElementById('d').innerText = b.join('');
+            };
+
+            var canvasframe = function() {
+                var canvastag = document.getElementById('canvasdonut');
+                var ctx = canvastag.getContext('2d');
+                ctx.fillStyle = '#000';
+                ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+                A += 0.02;
+                B += 0.02;
+
+                for (var x = -1.5; x < 1.5; x += 0.05) {
+                    for (var y = -1.5; y < 1.5; y += 0.05) {
+                        var z_upper = (1 / 1.3) * Math.sqrt(-(x * x + y * y - 1 / 2.1) * (x * x + y * y - 1 / 2.1) - y);
+                        var z_lower = -(1 / 1.3) * Math.sqrt(-(x * x + y * y - 1 / 2.1) * (x * x + y * y - 1 / 1.5) - y);
+
+                        var rotated_upper = rotate(x, y, z_upper, A, B);
+                        var rotated_lower = rotate(x, y, z_lower, A, B);
+
+                        var ooz_upper = 1 / (2.5 + rotated_upper.z);
+                        var xp_upper = 160 + 200 * ooz_upper * rotated_upper.x;
+                        var yp_upper = 120 - 200 * ooz_upper * rotated_upper.y;
+                        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                        ctx.fillRect(xp_upper, yp_upper, 2.5, 2.5);
+
+                        var ooz_lower = 1 / (2.5 + rotated_lower.z);
+                        var xp_lower = 160 + 200 * ooz_lower * rotated_lower.x;
+                        var yp_lower = 120 - 200 * ooz_lower * rotated_lower.y;
+                        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                        ctx.fillRect(xp_lower, yp_lower, 2.5, 2.5);
+                    }
+                }
+            };
+
+            window.toggleCanvasAnimation = function() {
+                if (!tmrCanvas) {
+                    tmrCanvas = setInterval(canvasframe, 50);
+                } else {
+                    clearInterval(tmrCanvas);
+                    tmrCanvas = null;
+                }
+            }
+
+            window.toggleASCIIAnimation = function() {
+                if (!tmrASCII) {
+                    tmrASCII = setInterval(asciiframe, 50);
+                } else {
+                    clearInterval(tmrASCII);
+                    tmrASCII = null;
+                }
+            }
+        })();
+
+        window.onload = function() {
+            toggleCanvasAnimation();
+            toggleASCIIAnimation();
+        }
+    </script>
+</body>
+
+</html>
