@@ -1,4 +1,4 @@
-// bean_animation.js
+// Code to run on Terminal!
 
 const sleep = (milliseconds) => {
     return new Promise(resolve => setTimeout(resolve, milliseconds));

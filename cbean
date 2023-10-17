@@ -1,0 +1,74 @@
+//Here is the C code. It tries to mimic the JS code. Currently in progress.
+//Attempting to make code in a bean shape!
+
+#include <stdio.h>
+#include <math.h>
+#include <stdbool.h>
+#include <unistd.h> 
+#include <string.h> 
+#define WIDTH 80
+#define HEIGHT 22
+
+char screen[HEIGHT][WIDTH];
+float depthBuffer[HEIGHT][WIDTH];
+
+void clearScreen() {
+    for(int y = 0; y < HEIGHT; y++) {
+        for(int x = 0; x < WIDTH; x++) {
+            screen[y][x] = ' ';
+            depthBuffer[y][x] = 0.0;
+        }
+        screen[y][WIDTH - 1] = '\n';  
+    }
+}
+void draw() {
+    for(int y = 0; y < HEIGHT; y++) {
+        for(int x = 0; x < WIDTH; x++) {
+            putchar(screen[y][x]);
+        }
+    }
+}
+void rotate(float x, float y, float z, float a, float b, float *out_x, float *out_y, float *out_z) {
+    float x_rot_y = x * cos(a) - z * sin(a);
+    float y_rot_y = y;
+    float z_rot_y = x * sin(a) + z * cos(a);
+    *out_x = x_rot_y * cos(b) - y_rot_y * sin(b);
+    *out_y = x_rot_y * sin(b) + y_rot_y * cos(b);
+    *out_z = z_rot_y;
+}
+int main() {
+    float A = 0, B = 0;
+    const char *chars = ".,-~:;=!*#$@";
+    bool run = true;
+    while(run) {
+        clearScreen();
+        for(float x = -2; x < 2; x += 0.05) {
+            for(float y = -2; y < 2; y += 0.05) {
+                float z_upper = (1 / 1.3) * sqrtf(-(x * x + y * y - 1 / 1.5) * (x * x + y * y - 1 / 1.5) - y);
+                float z_lower = -(1 / 1.3) * sqrtf(-(x * x + y * y - 1 / 1.5) * (x * x + y * y - 1 / 1.5) - y);
+
+                float rotated_upper_x, rotated_upper_y, rotated_upper_z;
+                rotate(x, y, z_upper, A, B, &rotated_upper_x, &rotated_upper_y, &rotated_upper_z);
+
+                float ooz_upper = 1 / (1.7 + rotated_upper_z);
+                int xp_upper = (int)(40 + 30 * ooz_upper * rotated_upper_x);
+                int yp_upper = (int)(18 + 15 * ooz_upper * rotated_upper_y);
+
+                int L_upper = (int)(ooz_upper * (strlen(chars) - 1) * .9);
+                if (L_upper >= strlen(chars)) L_upper = strlen(chars) - 2;
+
+                if(xp_upper >= 0 && xp_upper < WIDTH && yp_upper >= 0 && yp_upper < HEIGHT) {
+                    if(ooz_upper > depthBuffer[yp_upper][xp_upper]) {
+                        depthBuffer[yp_upper][xp_upper] = ooz_upper;
+                        screen[yp_upper][xp_upper] = chars[L_upper];
+                    }
+                }
+            }
+        }
+        draw();
+        A += 0.07;
+        B += 0.03;
+        sleep(1); 
+    }
+    return 0;
+}
